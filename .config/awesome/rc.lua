@@ -137,53 +137,66 @@ mytextclock = wibox.widget {
 
 -- Battery widget
 local battery_widget = wibox.widget {
-    markup = '<span foreground="#00ffff"> BAT: -- </span>',
+    markup = '<span foreground="#00ffff"> 🔋 -- </span>',
     widget = wibox.widget.textbox,
 }
 
--- Find battery path dynamically
 local battery_path = nil
-awful.spawn.easy_async_with_shell(
-    "find /sys/class/power_supply -name 'capacity' -path '*bat*' -o -name 'capacity' -path '*BAT*' -o -name 'capacity' -path '*axp*' 2>/dev/null | head -1",
-    function(stdout)
-        local path = stdout:gsub("%s+", "")
-        if path ~= "" then
-            battery_path = path:gsub("/capacity$", "")
+
+local function find_battery_path(callback)
+    awful.spawn.easy_async_with_shell(
+        "for p in /sys/class/power_supply/*/capacity; do [ -f \"$p\" ] && echo \"$(dirname \"$p\")\" && break; done",
+        function(stdout)
+            local path = stdout:gsub("%s+", "")
+            if path ~= "" then
+                battery_path = path
+            end
+            if callback then callback() end
         end
-    end
-)
+    )
+end
+
+local function update_battery()
+    if not battery_path then return end
+    awful.spawn.easy_async_with_shell(
+        "cat " .. battery_path .. "/capacity 2>/dev/null; cat " .. battery_path .. "/status 2>/dev/null",
+        function(stdout)
+            local lines = {}
+            for line in stdout:gmatch("[^\r\n]+") do
+                table.insert(lines, line)
+            end
+            local capacity = lines[1] or "?"
+            local status = lines[2] or "Unknown"
+            local icon = "🔋"
+            local color = "#00ffff"
+            local pct = tonumber(capacity) or 0
+            if status:match("Charging") then
+                icon = "⚡"
+                color = "#00ff41"
+            elseif pct <= 15 then
+                color = "#ff0055"
+            elseif pct <= 30 then
+                color = "#ff6600"
+            end
+            battery_widget:set_markup(
+                '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. capacity .. '% </span>'
+            )
+        end
+    )
+end
+
+-- Find battery on startup, then start polling
+find_battery_path(update_battery)
 
 gears.timer {
     timeout = 15,
-    call_now = true,
     autostart = true,
     callback = function()
-        if not battery_path then return end
-        awful.spawn.easy_async_with_shell(
-            "cat " .. battery_path .. "/capacity 2>/dev/null && cat " .. battery_path .. "/status 2>/dev/null",
-            function(stdout)
-                local lines = {}
-                for line in stdout:gmatch("[^\r\n]+") do
-                    table.insert(lines, line)
-                end
-                local capacity = lines[1] or "?"
-                local status = lines[2] or "?"
-                local icon = "🔋"
-                local color = "#00ffff"
-                local pct = tonumber(capacity) or 0
-                if status:match("Charging") then
-                    icon = "⚡"
-                    color = "#00ff41"
-                elseif pct <= 15 then
-                    color = "#ff0055"
-                elseif pct <= 30 then
-                    color = "#ff6600"
-                end
-                battery_widget:set_markup(
-                    '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. capacity .. '% </span>'
-                )
-            end
-        )
+        if battery_path then
+            update_battery()
+        else
+            find_battery_path(update_battery)
+        end
     end,
 }
 
