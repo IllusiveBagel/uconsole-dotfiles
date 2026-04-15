@@ -137,7 +137,7 @@ mytextclock = wibox.widget {
 
 -- Battery widget
 local battery_widget = wibox.widget {
-    markup = '<span foreground="#00ffff"> 🔋 -- </span>',
+    markup = '<span foreground="#00ffff"> BAT -- </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -167,11 +167,11 @@ local function update_battery()
             end
             local capacity = lines[1] or "?"
             local status = lines[2] or "Unknown"
-            local icon = "🔋"
+            local icon = "BAT"
             local color = "#00ffff"
             local pct = tonumber(capacity) or 0
             if status:match("Charging") then
-                icon = "⚡"
+                icon = "CHG"
                 color = "#00ff41"
             elseif pct <= 15 then
                 color = "#ff0055"
@@ -202,7 +202,7 @@ gears.timer {
 
 -- WiFi widget
 local wifi_widget = wibox.widget {
-    markup = '<span foreground="#ff00ff"> 📡 -- </span>',
+    markup = '<span foreground="#ff00ff"> NET -- </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -218,7 +218,7 @@ gears.timer {
                 if ssid == "" then ssid = "N/A" end
                 local color = ssid == "N/A" and "#ff0055" or "#ff00ff"
                 wifi_widget:set_markup(
-                    '<span foreground="' .. color .. '"> 📡 ' .. ssid .. ' </span>'
+                    '<span foreground="' .. color .. '"> NET ' .. ssid .. ' </span>'
                 )
             end
         )
@@ -227,7 +227,7 @@ gears.timer {
 
 -- Volume widget
 local volume_widget = wibox.widget {
-    markup = '<span foreground="#00ffc8"> 🔊 --% </span>',
+    markup = '<span foreground="#00ffc8"> VOL --% </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -241,7 +241,7 @@ local function update_volume()
                 "amixer sget Master 2>/dev/null | grep -oP '\\[\\K(on|off)(?=\\])' | head -1",
                 function(mute_out)
                     local muted = mute_out:gsub("%s+", "") == "off"
-                    local icon = muted and "🔇" or "🔊"
+                    local icon = muted and "MUT" or "VOL"
                     local color = muted and "#ff0055" or "#00ffc8"
                     volume_widget:set_markup(
                         '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. vol .. '% </span>'
