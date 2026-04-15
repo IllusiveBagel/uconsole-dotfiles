@@ -11,24 +11,46 @@ local themes_path = gfs.get_themes_dir()
 
 local theme = {}
 
-theme.font          = "sans 8"
+theme.font          = "monospace bold 10"
 
-theme.bg_normal     = "#222222"
-theme.bg_focus      = "#535d6c"
-theme.bg_urgent     = "#ff0000"
-theme.bg_minimize   = "#444444"
+theme.bg_normal     = "#0a0a0f"
+theme.bg_focus      = "#1a1a2e"
+theme.bg_urgent     = "#ff0055"
+theme.bg_minimize   = "#0f0f1a"
 theme.bg_systray    = theme.bg_normal
 
-theme.fg_normal     = "#aaaaaa"
-theme.fg_focus      = "#ffffff"
-theme.fg_urgent     = "#ffffff"
-theme.fg_minimize   = "#ffffff"
+theme.fg_normal     = "#7a7a8e"
+theme.fg_focus      = "#00ffc8"
+theme.fg_urgent     = "#ff0055"
+theme.fg_minimize   = "#444466"
 
-theme.useless_gap   = dpi(0)
-theme.border_width  = dpi(1)
-theme.border_normal = "#000000"
-theme.border_focus  = "#535d6c"
-theme.border_marked = "#91231c"
+theme.useless_gap   = dpi(4)
+theme.border_width  = dpi(2)
+theme.border_normal = "#0a0a0f"
+theme.border_focus  = "#ff00ff"
+theme.border_marked = "#00ff41"
+
+-- Taglist
+theme.taglist_bg_focus    = "#ff00ff"
+theme.taglist_fg_focus    = "#0a0a0f"
+theme.taglist_bg_occupied = "#1a1a2e"
+theme.taglist_fg_occupied = "#00ffff"
+theme.taglist_bg_empty    = "#0a0a0f"
+theme.taglist_fg_empty    = "#333355"
+theme.taglist_bg_urgent   = "#ff0055"
+theme.taglist_fg_urgent   = "#ffffff"
+theme.taglist_font        = "monospace bold 11"
+
+-- Tasklist
+theme.tasklist_bg_focus  = "#1a1a2e"
+theme.tasklist_fg_focus  = "#00ffc8"
+theme.tasklist_bg_normal = "#0a0a0f"
+theme.tasklist_fg_normal = "#7a7a8e"
+
+-- Wibar
+theme.wibar_height = dpi(32)
+theme.wibar_bg     = "#0a0a0fcc"
+theme.wibar_fg     = "#00ffff"
 
 -- There are other variable sets
 -- overriding the default one when
@@ -44,9 +66,9 @@ theme.border_marked = "#91231c"
 --theme.taglist_bg_focus = "#ff0000"
 
 -- Generate taglist squares:
-local taglist_square_size = dpi(4)
+local taglist_square_size = dpi(0)
 theme.taglist_squares_sel = theme_assets.taglist_squares_sel(
-    taglist_square_size, theme.fg_normal
+    taglist_square_size, theme.fg_focus
 )
 theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
     taglist_square_size, theme.fg_normal

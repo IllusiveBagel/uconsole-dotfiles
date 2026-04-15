@@ -49,7 +49,7 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(gears.filesystem.get_themes_dir() .. "~/.config/awesome/theme.lua")
+beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -61,7 +61,7 @@ editor_cmd = terminal .. " -e " .. editor
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod4"
+modkey = "Mod1"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
@@ -120,8 +120,131 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
--- Create a textclock widget
-mytextclock = wibox.widget.textclock()
+
+-- Separator / spacer widgets
+local sep = wibox.widget.textbox(" ")
+local pipe = wibox.widget {
+    markup = '<span foreground="#333355"> │ </span>',
+    widget = wibox.widget.textbox,
+}
+
+-- Clock widget (neon green)
+mytextclock = wibox.widget {
+    format = '<span foreground="#00ff41"> %a %b %d  %H:%M </span>',
+    widget = wibox.widget.textclock,
+    refresh = 30,
+}
+
+-- Battery widget
+local battery_widget = wibox.widget {
+    markup = '<span foreground="#00ffff"> BAT: -- </span>',
+    widget = wibox.widget.textbox,
+}
+
+-- Find battery path dynamically
+local battery_path = nil
+awful.spawn.easy_async_with_shell(
+    "find /sys/class/power_supply -name 'capacity' -path '*bat*' -o -name 'capacity' -path '*BAT*' -o -name 'capacity' -path '*axp*' 2>/dev/null | head -1",
+    function(stdout)
+        local path = stdout:gsub("%s+", "")
+        if path ~= "" then
+            battery_path = path:gsub("/capacity$", "")
+        end
+    end
+)
+
+gears.timer {
+    timeout = 15,
+    call_now = true,
+    autostart = true,
+    callback = function()
+        if not battery_path then return end
+        awful.spawn.easy_async_with_shell(
+            "cat " .. battery_path .. "/capacity 2>/dev/null && cat " .. battery_path .. "/status 2>/dev/null",
+            function(stdout)
+                local lines = {}
+                for line in stdout:gmatch("[^\r\n]+") do
+                    table.insert(lines, line)
+                end
+                local capacity = lines[1] or "?"
+                local status = lines[2] or "?"
+                local icon = "🔋"
+                local color = "#00ffff"
+                local pct = tonumber(capacity) or 0
+                if status:match("Charging") then
+                    icon = "⚡"
+                    color = "#00ff41"
+                elseif pct <= 15 then
+                    color = "#ff0055"
+                elseif pct <= 30 then
+                    color = "#ff6600"
+                end
+                battery_widget:set_markup(
+                    '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. capacity .. '% </span>'
+                )
+            end
+        )
+    end,
+}
+
+-- WiFi widget
+local wifi_widget = wibox.widget {
+    markup = '<span foreground="#ff00ff"> 📡 -- </span>',
+    widget = wibox.widget.textbox,
+}
+
+gears.timer {
+    timeout = 10,
+    call_now = true,
+    autostart = true,
+    callback = function()
+        awful.spawn.easy_async_with_shell(
+            "iwgetid -r 2>/dev/null || echo 'N/A'",
+            function(stdout)
+                local ssid = stdout:gsub("%s+$", "")
+                if ssid == "" then ssid = "N/A" end
+                local color = ssid == "N/A" and "#ff0055" or "#ff00ff"
+                wifi_widget:set_markup(
+                    '<span foreground="' .. color .. '"> 📡 ' .. ssid .. ' </span>'
+                )
+            end
+        )
+    end,
+}
+
+-- Volume widget
+local volume_widget = wibox.widget {
+    markup = '<span foreground="#00ffc8"> 🔊 --% </span>',
+    widget = wibox.widget.textbox,
+}
+
+local function update_volume()
+    awful.spawn.easy_async_with_shell(
+        "amixer sget Master 2>/dev/null | grep -oP '\\[\\K[0-9]+(?=%)' | head -1",
+        function(stdout)
+            local vol = stdout:gsub("%s+", "")
+            if vol == "" then vol = "?" end
+            awful.spawn.easy_async_with_shell(
+                "amixer sget Master 2>/dev/null | grep -oP '\\[\\K(on|off)(?=\\])' | head -1",
+                function(mute_out)
+                    local muted = mute_out:gsub("%s+", "") == "off"
+                    local icon = muted and "🔇" or "🔊"
+                    local color = muted and "#ff0055" or "#00ffc8"
+                    volume_widget:set_markup(
+                        '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. vol .. '% </span>'
+                    )
+                end
+            )
+        end
+    )
+end
+
+gears.timer {
+    timeout = 5,
+    call_now = true,
+    autostart = true,
+    callback = update_volume,
+}
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(
@@ -210,23 +333,29 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s })
+    s.mywibox = awful.wibar({ position = "top", screen = s, height = 32 })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            mylauncher,
             s.mytaglist,
+            pipe,
             s.mypromptbox,
         },
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
+            wifi_widget,
+            pipe,
+            volume_widget,
+            pipe,
+            battery_widget,
+            pipe,
             wibox.widget.systray(),
             mytextclock,
+            sep,
             s.mylayoutbox,
         },
     }
@@ -324,9 +453,13 @@ globalkeys = gears.table.join(
               end,
               {description = "restore minimized", group = "client"}),
 
-    -- Prompt
-    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
-              {description = "run prompt", group = "launcher"}),
+    -- Rofi launchers
+    awful.key({ modkey },            "r",     function () awful.spawn("rofi -show drun") end,
+              {description = "rofi app launcher", group = "launcher"}),
+    awful.key({ modkey },            "p",     function () awful.spawn("rofi -show run") end,
+              {description = "rofi run prompt", group = "launcher"}),
+    awful.key({ modkey, "Shift" },   "w",     function () awful.spawn("rofi -show window") end,
+              {description = "rofi window switcher", group = "launcher"}),
 
     awful.key({ modkey }, "x",
               function ()
@@ -337,10 +470,7 @@ globalkeys = gears.table.join(
                     history_path = awful.util.get_cache_dir() .. "/history_eval"
                   }
               end,
-              {description = "lua execute prompt", group = "awesome"}),
-    -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end,
-              {description = "show the menubar", group = "launcher"})
+              {description = "lua execute prompt", group = "awesome"})
 )
 
 clientkeys = gears.table.join(
