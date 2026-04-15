@@ -314,6 +314,9 @@ end
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
 
+-- Fix screen rotation (must happen before screen setup)
+awful.spawn.with_shell("xrandr --output DSI-2 --rotate right")
+
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
     set_wallpaper(s)
@@ -366,7 +369,7 @@ awful.screen.connect_for_each_screen(function(s)
             pipe,
             battery_widget,
             pipe,
-            wibox.widget.systray(),
+            s == screen.primary and wibox.widget.systray() or nil,
             mytextclock,
             sep,
             s.mylayoutbox,
@@ -719,6 +722,3 @@ end)
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
-
--- Fix screen rotation
-awful.spawn.with_shell("xrandr --output DSI-2 --rotate right")
