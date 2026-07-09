@@ -70,6 +70,7 @@ theme.titlebar_bg_focus  = "#241a10"
 theme.titlebar_bg_normal = "#171009"
 theme.titlebar_fg_focus  = "#ff9d3f"
 theme.titlebar_fg_normal = "#8a6a2f"
+theme.titlebar_size      = dpi(24)
 
 -- ── Wibar (top panel — the "deck faceplate") ───────────
 theme.wibar_height = dpi(22)
@@ -115,22 +116,25 @@ theme.hotkeys_font         = "JetBrains Mono 10"
 theme.hotkeys_description_font = "JetBrains Mono 9"
 
 -- ── Layout icons ─────────────────────────────────────────
-theme.layout_fairh      = themes_path .. "icons/layouts/fairhw.png"
-theme.layout_fairv      = themes_path .. "icons/layouts/fairvw.png"
-theme.layout_floating   = themes_path .. "icons/layouts/floatingw.png"
-theme.layout_magnifier  = themes_path .. "icons/layouts/magnifierw.png"
-theme.layout_max        = themes_path .. "icons/layouts/maxw.png"
-theme.layout_fullscreen = themes_path .. "icons/layouts/fullscreenw.png"
-theme.layout_tilebottom = themes_path .. "icons/layouts/tilebottomw.png"
-theme.layout_tileleft   = themes_path .. "icons/layouts/tileleftw.png"
-theme.layout_tile       = themes_path .. "icons/layouts/tilew.png"
-theme.layout_tiletop    = themes_path .. "icons/layouts/tiletopw.png"
-theme.layout_spiral     = themes_path .. "icons/layouts/spiralw.png"
-theme.layout_dwindle    = themes_path .. "icons/layouts/dwindlew.png"
-theme.layout_cornernw   = themes_path .. "icons/layouts/cornernww.png"
-theme.layout_cornerne   = themes_path .. "icons/layouts/cornernew.png"
-theme.layout_cornersw   = themes_path .. "icons/layouts/cornersww.png"
-theme.layout_cornerse   = themes_path .. "icons/layouts/cornersew.png"
+-- These paths match the stock awesome default theme's layout of
+-- /usr/share/awesome/themes/default/layouts/*.png — copy that folder
+-- (not "icons/layouts") into themes_path, see install notes.
+theme.layout_fairh      = themes_path .. "layouts/fairhw.png"
+theme.layout_fairv      = themes_path .. "layouts/fairvw.png"
+theme.layout_floating   = themes_path .. "layouts/floatingw.png"
+theme.layout_magnifier  = themes_path .. "layouts/magnifierw.png"
+theme.layout_max        = themes_path .. "layouts/maxw.png"
+theme.layout_fullscreen = themes_path .. "layouts/fullscreenw.png"
+theme.layout_tilebottom = themes_path .. "layouts/tilebottomw.png"
+theme.layout_tileleft   = themes_path .. "layouts/tileleftw.png"
+theme.layout_tile       = themes_path .. "layouts/tilew.png"
+theme.layout_tiletop    = themes_path .. "layouts/tiletopw.png"
+theme.layout_spiral     = themes_path .. "layouts/spiralw.png"
+theme.layout_dwindle    = themes_path .. "layouts/dwindlew.png"
+theme.layout_cornernw   = themes_path .. "layouts/cornernww.png"
+theme.layout_cornerne   = themes_path .. "layouts/cornernew.png"
+theme.layout_cornersw   = themes_path .. "layouts/cornersww.png"
+theme.layout_cornerse   = themes_path .. "layouts/cornersew.png"
 
 -- Generate taglist square icons in the "cassette hub" style (small
 -- filled/hollow circles rather than default squares) so tags look like
@@ -150,29 +154,15 @@ theme.icon_theme = nil
 -- (see the cassette-tape wallpaper we'll build next).
 theme.wallpaper = themes_path .. "wallpaper.png"
 
--- Recolor & recreate the standard titlebar buttons in-palette instead of
--- using the stock light-grey PNGs.
-theme.titlebar_close_button_normal              = theme_assets.titlebar_close_normal(
-    dpi(1), "#8a6a2f", theme.bg_normal
-)
-theme.titlebar_close_button_focus               = theme_assets.titlebar_close_normal(
-    dpi(1), "#e5502f", theme.bg_normal
-)
-theme.titlebar_ontop_button_normal_inactive     = theme_assets.titlebar_ontop_normal_inactive(
-    dpi(1), "#8a6a2f", theme.bg_normal
-)
-theme.titlebar_ontop_button_focus_active        = theme_assets.titlebar_ontop_normal_active(
-    dpi(1), "#7ee0c4", theme.bg_normal
-)
-theme.titlebar_maximized_button_normal_inactive = theme_assets.titlebar_maximized_normal_inactive(
-    dpi(1), "#8a6a2f", theme.bg_normal
-)
-theme.titlebar_maximized_button_focus_active    = theme_assets.titlebar_maximized_normal_active(
-    dpi(1), "#ff9d3f", theme.bg_normal
-)
+-- ── Titlebar ──────────────────────────────────────────────
+-- No stock PNG button icons here — rc.lua builds a custom titlebar out
+-- of text glyphs styled to match the wibar's bracket buttons, so there
+-- are no titlebar/*.png files to install for this theme.
 
--- Recolor layout icons + a generic awesome icon so the whole panel
--- matches the palette (uses the stock theme_assets recolorer).
+-- ── Recolor stock icons in-palette ───────────────────────
+-- Real function, verified against
+-- /usr/share/awesome/lib/beautiful/theme_assets.lua — recolors every
+-- theme.layout_* icon in place with one color.
 theme = theme_assets.recolor_layout(theme, theme.fg_normal)
 
 return theme

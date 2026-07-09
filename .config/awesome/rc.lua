@@ -10,6 +10,7 @@ require("awful.autofocus")
 local wibox = require("wibox")
 -- Theme handling library
 local beautiful = require("beautiful")
+local dpi = require("beautiful.xresources").apply_dpi
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
@@ -698,9 +699,13 @@ client.connect_signal("manage", function (c)
 end)
 
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
+--
+-- Custom "tape deck" titlebar: no stock PNG buttons. Controls are text
+-- glyphs that light up amber/red on hover, echoing the [ bracketed ]
+-- readouts on the wibar. A small LED dot sits left of the title and
+-- glows when the client has focus.
 client.connect_signal("request::titlebars", function(c)
-    -- buttons for the titlebar
-    local buttons = gears.table.join(
+    local move_resize_buttons = gears.table.join(
         awful.button({ }, 1, function()
             c:emit_signal("request::activate", "titlebar", {raise = true})
             awful.mouse.client.move(c)
@@ -711,29 +716,85 @@ client.connect_signal("request::titlebars", function(c)
         end)
     )
 
-    awful.titlebar(c) : setup {
-        { -- Left
-            awful.titlebar.widget.iconwidget(c),
-            buttons = buttons,
-            layout  = wibox.layout.fixed.horizontal
-        },
-        { -- Middle
-            { -- Title
-                align  = "center",
-                widget = awful.titlebar.widget.titlewidget(c)
+    -- One glyph button: dim by default, brightens to `hover_fg` on
+    -- mouse-over, runs `fn` on left-click.
+    local function control_button(glyph, hover_fg, fn)
+        local label = wibox.widget.textbox()
+        local idle_fg = beautiful.fg_minimize
+
+        local function paint(fg)
+            label:set_markup('<span font_desc="JetBrains Mono 10" foreground="'
+                .. fg .. '">' .. glyph .. '</span>')
+        end
+        paint(idle_fg)
+
+        local btn = wibox.widget {
+            {
+                label,
+                left = 7, right = 7,
+                widget = wibox.container.margin,
             },
-            buttons = buttons,
-            layout  = wibox.layout.flex.horizontal
+            widget = wibox.container.background,
+        }
+
+        btn:connect_signal("mouse::enter", function() paint(hover_fg) end)
+        btn:connect_signal("mouse::leave", function() paint(idle_fg) end)
+        btn:buttons(gears.table.join(awful.button({ }, 1, fn)))
+        return btn
+    end
+
+    local close_btn = control_button("×", beautiful.fg_urgent, function() c:kill() end)
+    local max_btn   = control_button("▢", beautiful.fg_accent, function()
+        c.maximized = not c.maximized
+        c:raise()
+    end)
+    local min_btn   = control_button("–", beautiful.fg_focus, function()
+        c.minimized = true
+    end)
+
+    -- Focus LED: lit amber when this client has focus, dim otherwise.
+    -- Uses the same focus/unfocus client signals already relied on below
+    -- for border_color, rather than an unverified client property.
+    local led = wibox.widget {
+        {
+            id     = "dot",
+            shape  = gears.shape.circle,
+            bg     = (client.focus == c) and beautiful.fg_focus or beautiful.fg_minimize,
+            widget = wibox.container.background,
         },
-        { -- Right
-            awful.titlebar.widget.floatingbutton (c),
-            awful.titlebar.widget.maximizedbutton(c),
-            awful.titlebar.widget.stickybutton   (c),
-            awful.titlebar.widget.ontopbutton    (c),
-            awful.titlebar.widget.closebutton    (c),
-            layout = wibox.layout.fixed.horizontal()
+        forced_width  = dpi(7),
+        forced_height = dpi(7),
+        left = dpi(9), right = dpi(6), top = dpi(9), bottom = dpi(9),
+        widget = wibox.container.margin,
+    }
+    local function refresh_led()
+        led:get_children_by_id("dot")[1].bg =
+            (client.focus == c) and beautiful.fg_focus or beautiful.fg_minimize
+    end
+    c:connect_signal("focus", refresh_led)
+    c:connect_signal("unfocus", refresh_led)
+
+    awful.titlebar(c, { size = beautiful.titlebar_size }) : setup {
+        { -- Left: focus LED
+            led,
+            buttons = move_resize_buttons,
+            layout  = wibox.layout.fixed.horizontal,
         },
-        layout = wibox.layout.align.horizontal
+        { -- Middle: title, drag-to-move/resize like before
+            {
+                align  = "center",
+                widget = awful.titlebar.widget.titlewidget(c),
+            },
+            buttons = move_resize_buttons,
+            layout  = wibox.layout.flex.horizontal,
+        },
+        { -- Right: minimize / maximize / close glyphs
+            min_btn,
+            max_btn,
+            close_btn,
+            layout = wibox.layout.fixed.horizontal,
+        },
+        layout = wibox.layout.align.horizontal,
     }
 end)
 
