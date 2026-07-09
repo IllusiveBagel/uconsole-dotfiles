@@ -49,7 +49,8 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
-beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/default/theme.lua")
+-- "Tape Deck 01" — cassette-futurism theme (amber/cream on near-black).
+beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/cassette/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -121,23 +122,41 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
 
+-- Small helper: wraps a widget in amber square brackets, so each status
+-- readout looks like a labeled transport button on a tape deck's
+-- faceplate — e.g. [ NET home-wifi ] [ VOL 62% ] [ BATT 74% ].
+local function bracket(widget, fg)
+    fg = fg or beautiful.fg_minimize
+    return wibox.widget {
+        {
+            markup = '<span foreground="' .. fg .. '">[</span>',
+            widget = wibox.widget.textbox,
+        },
+        widget,
+        {
+            markup = '<span foreground="' .. fg .. '">]</span>',
+            widget = wibox.widget.textbox,
+        },
+        spacing = 2,
+        layout  = wibox.layout.fixed.horizontal,
+    }
+end
+
 -- Separator / spacer widgets
 local sep = wibox.widget.textbox(" ")
-local pipe = wibox.widget {
-    markup = '<span foreground="#333355"> │ </span>',
-    widget = wibox.widget.textbox,
-}
 
--- Clock widget (neon green)
+-- Clock widget — bright amber "LED" readout, day/date dimmer
 mytextclock = wibox.widget {
-    format = '<span foreground="#00ff41"> %a %b %d  %H:%M </span>',
+    format = '<span foreground="' .. beautiful.fg_minimize .. '"> %a %b %d </span>'
+        .. '<span foreground="' .. beautiful.fg_focus .. '" font_weight="bold"'
+        .. ' font_desc="JetBrains Mono Bold 11" letter_spacing="1536"> %H:%M </span>',
     widget = wibox.widget.textclock,
     refresh = 30,
 }
 
 -- Battery widget
 local battery_widget = wibox.widget {
-    markup = '<span foreground="#00ffff"> BAT -- </span>',
+    markup = '<span foreground="' .. beautiful.fg_normal .. '"> BATT -- </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -167,19 +186,19 @@ local function update_battery()
             end
             local capacity = lines[1] or "?"
             local status = lines[2] or "Unknown"
-            local icon = "BAT"
-            local color = "#00ffff"
+            local label = "BATT"
+            local color = beautiful.fg_normal
             local pct = tonumber(capacity) or 0
             if status:match("Charging") then
-                icon = "CHG"
-                color = "#00ff41"
+                label = "CHG"
+                color = beautiful.fg_accent
             elseif pct <= 15 then
-                color = "#ff0055"
+                color = beautiful.fg_urgent
             elseif pct <= 30 then
-                color = "#ff6600"
+                color = beautiful.fg_warn
             end
             battery_widget:set_markup(
-                '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. capacity .. '% </span>'
+                '<span foreground="' .. color .. '"> ' .. label .. ' ' .. capacity .. '% </span>'
             )
         end
     )
@@ -202,7 +221,7 @@ gears.timer {
 
 -- WiFi widget
 local wifi_widget = wibox.widget {
-    markup = '<span foreground="#ff00ff"> NET -- </span>',
+    markup = '<span foreground="' .. beautiful.fg_minimize .. '"> NET -- </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -216,7 +235,7 @@ gears.timer {
             function(stdout)
                 local ssid = stdout:gsub("%s+$", "")
                 if ssid == "" then ssid = "N/A" end
-                local color = ssid == "N/A" and "#ff0055" or "#ff00ff"
+                local color = ssid == "N/A" and beautiful.fg_urgent or beautiful.fg_accent
                 wifi_widget:set_markup(
                     '<span foreground="' .. color .. '"> NET ' .. ssid .. ' </span>'
                 )
@@ -227,7 +246,7 @@ gears.timer {
 
 -- Volume widget
 local volume_widget = wibox.widget {
-    markup = '<span foreground="#00ffc8"> VOL --% </span>',
+    markup = '<span foreground="' .. beautiful.fg_normal .. '"> VOL --% </span>',
     widget = wibox.widget.textbox,
 }
 
@@ -241,10 +260,10 @@ local function update_volume()
                 "amixer sget Master 2>/dev/null | grep -oP '\\[\\K(on|off)(?=\\])' | head -1",
                 function(mute_out)
                     local muted = mute_out:gsub("%s+", "") == "off"
-                    local icon = muted and "MUT" or "VOL"
-                    local color = muted and "#ff0055" or "#00ffc8"
+                    local label = muted and "MUT" or "VOL"
+                    local color = muted and beautiful.fg_urgent or beautiful.fg_normal
                     volume_widget:set_markup(
-                        '<span foreground="' .. color .. '"> ' .. icon .. ' ' .. vol .. '% </span>'
+                        '<span foreground="' .. color .. '"> ' .. label .. ' ' .. vol .. '% </span>'
                     )
                 end
             )
@@ -348,8 +367,14 @@ awful.screen.connect_for_each_screen(function(s)
         buttons = tasklist_buttons
     }
 
-    -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s, height = 32 })
+    -- Create the wibox — the deck's faceplate. Height/colors come from theme.lua.
+    s.mywibox = awful.wibar({
+        position = "top",
+        screen   = s,
+        height   = beautiful.wibar_height,
+        bg       = beautiful.wibar_bg,
+        fg       = beautiful.wibar_fg,
+    })
 
     -- Add widgets to the wibox
     s.mywibox:setup {
@@ -357,20 +382,18 @@ awful.screen.connect_for_each_screen(function(s)
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
             s.mytaglist,
-            pipe,
+            sep,
             s.mypromptbox,
         },
         s.mytasklist, -- Middle widget
-        { -- Right widgets
+        { -- Right widgets: each status readout bracketed like a transport button
             layout = wibox.layout.fixed.horizontal,
-            wifi_widget,
-            pipe,
-            volume_widget,
-            pipe,
-            battery_widget,
-            pipe,
+            spacing = 6,
+            bracket(wifi_widget, beautiful.fg_minimize),
+            bracket(volume_widget, beautiful.fg_minimize),
+            bracket(battery_widget, beautiful.fg_minimize),
             s == screen.primary and wibox.widget.systray() or nil,
-            mytextclock,
+            bracket(mytextclock, beautiful.fg_focus),
             sep,
             s.mylayoutbox,
         },
