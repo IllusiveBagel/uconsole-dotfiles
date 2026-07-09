@@ -1,0 +1,19 @@
+/**
+ * ~/.config/rofi/config.rasi
+ * Behavior/config for rofi — the actual look lives in cassette.rasi.
+ */
+
+configuration {
+    modes:                       "drun,run,window";
+    show-icons:                 true;
+    icon-theme:                 "Papirus";   /* swap for whatever icon theme you have installed */
+    display-drun:               "apps";
+    display-run:                "run";
+    display-window:             "windows";
+    drun-display-format:        "{name}";
+    disable-history:            false;
+    sidebar-mode:                true;       /* show the drun/run/window tabs as a row of buttons */
+    hover-select:                true;
+}
+
+@theme "cassette"

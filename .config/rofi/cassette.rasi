@@ -1,0 +1,166 @@
+/**
+ * "Tape Deck 01" — cassette-futurism rofi theme.
+ * Matches theme.lua / alacritty.yml / zshrc palette.
+ * Save as ~/.config/rofi/cassette.rasi
+ */
+
+* {
+    /* Palette */
+    bg:             #1c1712;
+    bg-alt:         #241a10;
+    bg-input:       #171009;
+    fg:             #ffb45c;
+    fg-bright:      #ff9d3f;
+    fg-muted:       #8a6a2f;
+    accent:         #7ee0c4;
+    urgent:         #e5502f;
+    border-idle:    #3a2e20;
+
+    background-color: transparent;
+    text-color:        @fg;
+
+    font: "JetBrains Mono 11";
+}
+
+window {
+    background-color: @bg;
+    border:            2px;
+    border-color:      @fg-bright;
+    border-radius:     0px;
+    width:             480px;
+    location:          center;
+    padding:           0px;
+}
+
+mainbox {
+    background-color: @bg;
+    border:            0px;
+    padding:           0px;
+    children:          [ "inputbar", "message", "listview" ];
+}
+
+/* ── Input row: "[ ❯ ] search text" — echoes the zsh/titlebar glyphs ── */
+inputbar {
+    background-color: @bg-input;
+    text-color:        @fg;
+    padding:           10px 12px;
+    spacing:           8px;
+    border:            0px 0px 2px 0px;
+    border-color:      @border-idle;
+    children:          [ "textbox-prompt-colon", "entry" ];
+}
+
+textbox-prompt-colon {
+    expand:      false;
+    str:         "❯";
+    text-color:  @urgent;
+    margin:      0px 6px 0px 0px;
+}
+
+entry {
+    text-color:    @fg;
+    placeholder:   "search the deck...";
+    placeholder-color: @fg-muted;
+}
+
+message {
+    background-color: @bg-alt;
+    text-color:        @fg-bright;
+    border:            0px 0px 2px 0px;
+    border-color:      @border-idle;
+    padding:           6px 12px;
+}
+
+textbox {
+    text-color: @fg;
+}
+
+/* ── Results list ── */
+listview {
+    background-color: @bg;
+    columns:           1;
+    lines:             8;
+    spacing:           2px;
+    padding:           6px 0px;
+    cycle:             true;
+    scrollbar:         true;
+    fixed-height:      true;
+}
+
+scrollbar {
+    background-color: @bg-alt;
+    handle-color:      @accent;
+    handle-width:      4px;
+    border:            0px;
+    padding:           0px;
+}
+
+element {
+    padding:           7px 12px;
+    spacing:           8px;
+    border:            0px;
+}
+
+element-icon {
+    size:              1.1em;
+    background-color:  transparent;
+}
+
+element-text {
+    background-color: transparent;
+    text-color:        inherit;
+    vertical-align:    0.5;
+}
+
+/* Idle rows: dim amber text, no fill — like an unlit tape counter digit */
+element.normal.normal {
+    background-color: transparent;
+    text-color:        @fg-muted;
+}
+
+/* Selected row: solid hot-amber fill, dark text — reads like a pressed
+   transport button (same look as the taglist's focused tag). */
+element.selected.normal {
+    background-color: @fg-bright;
+    text-color:        @bg;
+}
+
+element.alternate.normal {
+    background-color: transparent;
+    text-color:        @fg-muted;
+}
+
+/* Urgent / active entries (rarely seen outside window-switcher mode) */
+element.normal.urgent {
+    text-color: @urgent;
+}
+element.selected.urgent {
+    background-color: @urgent;
+    text-color:        @bg;
+}
+element.normal.active {
+    text-color: @accent;
+}
+element.selected.active {
+    background-color: @accent;
+    text-color:        @bg;
+}
+
+/* ── Mode switcher (drun / run / window tabs, if enabled) ── */
+mode-switcher {
+    background-color: @bg-input;
+    border:            2px 0px 0px 0px;
+    border-color:      @border-idle;
+}
+
+button {
+    background-color: transparent;
+    text-color:         @fg-muted;
+    padding:            6px;
+    horizontal-align:   0.5;
+}
+
+button.selected {
+    background-color: @bg-alt;
+    text-color:         @fg-bright;
+}
