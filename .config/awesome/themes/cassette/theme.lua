@@ -152,7 +152,7 @@ theme.icon_theme = nil
 -- ── Wallpaper ────────────────────────────────────────────
 -- Point this at wallpaper.png once you've generated/placed one
 -- (see the cassette-tape wallpaper we'll build next).
-theme.wallpaper = themes_path .. "wallpaper.png"
+theme.wallpaper = themes_path .. "wallpaper.jpeg"
 
 -- ── Titlebar ──────────────────────────────────────────────
 -- No stock PNG button icons here — rc.lua builds a custom titlebar out
