@@ -21,10 +21,7 @@ window:
     dimensions:
         columns: 100
         lines: 28
-
-# Window opacity — 0.0 transparent, 1.0 opaque. This is a top-level key
-# in the 0.11 schema, not window.opacity (that key doesn't exist here).
-background_opacity: 0.6
+    opacity: 0.6
 
 scrolling:
     history: 5000
