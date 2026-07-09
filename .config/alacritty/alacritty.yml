@@ -1,0 +1,132 @@
+# ~/.config/alacritty/alacritty.yml
+#
+# "Tape Deck 01" — cassette-futurism theme for Alacritty.
+# Matches the palette used in the Awesome WM theme (theme.lua):
+#   bg          #1c1712   fg            #ffb45c
+#   bg alt      #241a10   fg bright     #ff9d3f
+#   accent teal #7ee0c4   urgent red    #e5502f
+# Written for Alacritty 0.11.0 (the version in Debian bookworm), which
+# still uses this YAML schema rather than the newer alacritty.toml.
+
+window:
+    # No decorations — Awesome draws the border/titlebar, so a second
+    # window-manager-style frame from Alacritty itself would double up.
+    decorations: none
+    padding:
+        x: 8
+        y: 8
+    dynamic_padding: false
+    # Small, low-res uConsole screen — keep the default window modest;
+    # awesome's tiling will resize it anyway.
+    dimensions:
+        columns: 100
+        lines: 28
+
+# Window opacity — 0.0 transparent, 1.0 opaque. This is a top-level key
+# in the 0.11 schema, not window.opacity (that key doesn't exist here).
+background_opacity: 0.6
+
+scrolling:
+    history: 5000
+    multiplier: 3
+
+font:
+    normal:
+        family: JetBrains Mono
+        style: Regular
+    bold:
+        family: JetBrains Mono
+        style: Bold
+    italic:
+        family: JetBrains Mono
+        style: Italic
+    bold_italic:
+        family: JetBrains Mono
+        style: Bold Italic
+    size: 11.0
+
+draw_bold_text_with_bright_colors: true
+
+colors:
+    primary:
+        background: "#1c1712"
+        foreground: "#ffb45c"
+        dim_foreground: "#8a6a2f"
+
+    cursor:
+        text: "#1c1712"
+        cursor: "#ff9d3f"
+
+    vi_mode_cursor:
+        text: "#1c1712"
+        cursor: "#7ee0c4"
+
+    selection:
+        text: "#1c1712"
+        background: "#3a2e20"
+
+    search:
+        matches:
+            foreground: "#1c1712"
+            background: "#ef8a2c"
+        focused_match:
+            foreground: "#1c1712"
+            background: "#ff9d3f"
+
+    # Standard ANSI colors, kept inside the amber/teal/cream palette rather
+    # than the usual rainbow — "green"/"blue"/"magenta" are reinterpreted
+    # as muted deck-panel hues so nothing clashes with the theme.
+    normal:
+        black: "#171009"
+        red: "#e5502f"
+        green: "#9c8b3f"
+        yellow: "#ef8a2c"
+        blue: "#5c7a8a"
+        magenta: "#c9895f"
+        cyan: "#7ee0c4"
+        white: "#c9bfa8"
+
+    bright:
+        black: "#3a2e20"
+        red: "#ff6b47"
+        green: "#c4b354"
+        yellow: "#ff9d3f"
+        blue: "#87a8b8"
+        magenta: "#e0a878"
+        cyan: "#a4f0da"
+        white: "#ffe9c7"
+
+    dim:
+        black: "#0d0906"
+        red: "#a53d24"
+        green: "#726630"
+        yellow: "#b06a22"
+        blue: "#455d6a"
+        magenta: "#96694a"
+        cyan: "#5aa88f"
+        white: "#8a8272"
+
+bell:
+    animation: EaseOutExpo
+    duration: 120
+    color: "#ff9d3f"
+
+cursor:
+    style:
+        shape: Block
+        blinking: On
+    blink_interval: 650
+    unfocused_hollow: true
+    thickness: 0.18
+
+mouse:
+    hide_when_typing: true
+
+selection:
+    save_to_clipboard: true
+
+live_config_reload: true
+
+# Uncomment and point at your login shell if $SHELL isn't already zsh:
+# shell:
+#   program: /usr/bin/zsh
